@@ -1,5 +1,3 @@
-#from https://github.com/pytorch/audio/blob/master/torchaudio/datasets/vctk.py
-
 import os
 from torch.utils.data import Dataset
 import errno
@@ -51,22 +49,21 @@ def load_txts(dir):
                         utterences[fname_no_ext] = f.readline()
     return utterences
 
-class VCTK(Dataset):
-    url = 'http://homepages.inf.ed.ac.uk/jyamagis/release/VCTK-Corpus.tar.gz'
-    dset_path = 'VCTK-Corpus'
+class IBM(Dataset):
+    dset_path = 'IBM-Corpus'
 
     def make_speaker_dic(self, root):
         speakers = [
-            str(speaker.name) for speaker in pathlib.Path(root).glob('wav48/*/')]
+            str(speaker.name) for speaker in pathlib.Path(root).glob('wav/*/')]
         speakers = sorted([speaker for speaker in speakers])
         speaker_dic = {speaker: i for i, speaker in enumerate(speakers)}
         return speaker_dic
 
-    def __init__(self, root, downsample=True, transform=None, target_transform=None, download=True, dev_mode=False, ratio=0.8):
-        super(VCTK, self).__init__()
+    def __init__(self, root, downsample=False, transform=None, target_transform=None, download=True, dev_mode=False, ratio=0.8):
+        super(IBM, self).__init__()
 
         self.root = os.path.expanduser(root)
-        self.raw_folder = '../data/vctk/raw'
+        self.raw_folder = '../data/ibm/raw'
         if os.path.isdir('..' + os.sep + self.raw_folder):
             self.raw_folder = '..' + os.sep + self.raw_folder
         self.downsample = downsample
@@ -96,46 +93,5 @@ class VCTK(Dataset):
         self.audios_train = self.audios[:split]
         self.audios_val = self.audios[split:]
 
-    def _check_exists(self,dset_abs_path):
-        return os.path.exists(os.path.join(dset_abs_path, "speaker-info.txt"))
-
     def download(self):
-        from six.moves import urllib
-        import tarfile
-
-        raw_abs_dir = os.path.join(self.root, self.raw_folder)
-        # processed_abs_dir = os.path.join(self.root, self.processed_folder)
-        dset_abs_path = os.path.join(
-            self.root, self.raw_folder, self.dset_path)
-
-        if self._check_exists(dset_abs_path):
-            print('Files already downloaded!')
-            return
-
-        # download files
-        try:
-            os.makedirs(os.path.join(self.root, self.raw_folder))
-        except OSError as e:
-            if e.errno == errno.EEXIST:
-                pass
-            else:
-                raise
-
-        url = self.url
-        print('Downloading ' + url)
-        filename = url.rpartition('/')[2]
-        file_path = os.path.join(self.root, self.raw_folder, filename)
-        if not os.path.isfile(file_path):
-            print ('retrieving tar file')
-            urllib.request.urlretrieve(url, file_path)
-        if not os.path.exists(dset_abs_path):
-            print ('unzipping tar file')
-            with tarfile.open(file_path) as zip_f:
-                zip_f.extractall(raw_abs_dir)
-        else:
-            print("Using existing raw folder")
-        
-        # if not self.dev_mode:
-        #     os.unlink(file_path)
-
-        print('Done!')
+        assert "not implemented"

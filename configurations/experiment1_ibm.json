@@ -1,0 +1,15 @@
+{
+    "experiments_path": "../experiments",
+    "results_path": "../results",
+    "configuration_path": "../configurations/ibm_features.yaml",
+    "seed": 1234,
+    "experiments": {    
+        "baseline": {
+            "num_epochs": 30,
+            "batch_size": 15,
+            "num_embeddings": 44,
+            "use_device": "cuda:0",
+            "normalize": true
+        }
+    }
+}
