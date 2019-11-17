@@ -6,10 +6,12 @@
     "experiments": {    
         "baseline": {
             "num_epochs": 30,
-            "batch_size": 15,
+            "batch_size": 4,
             "num_embeddings": 44,
             "use_device": "cuda:0",
-            "normalize": true
+            "normalize": true,
+            "use_jitter": true,
+            "jitter_probability": 0.1
         }
     }
 }

@@ -9,7 +9,7 @@ start_epoch: 0
 num_epochs: 5
 num_workers: 1
 train_val_split: 0.8
-learning_rate: 0.00001
+learning_rate: 0.0002
 normalize: False
 normalizer_path: '../data/ibm/ibm-mfcc-stats.pickle'
 use_speaker_conditioning: False
