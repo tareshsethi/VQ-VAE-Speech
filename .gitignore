@@ -9,3 +9,6 @@ samples/
 *.pth
 *.ini
 .vscode
+experiments_with_vctk/
+old_experiments/
+results_with_vctk/

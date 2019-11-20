@@ -46,7 +46,7 @@ class BaseTrainer(object):
         ConsoleLogger.status('start epoch: {}'.format(self._configuration['start_epoch']))
         ConsoleLogger.status('num epoch: {}'.format(self._configuration['num_epochs']))
 
-        for epoch in range(self._configuration['start_epoch'], self._configuration['num_epochs']):
+        for epoch in range(self._configuration['start_epoch'], 1000):
 
             with tqdm(self._data_stream.training_loader) as train_bar:
                 train_res_recon_error = list() # FIXME: record as a global metric

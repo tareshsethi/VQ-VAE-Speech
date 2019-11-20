@@ -37,6 +37,7 @@ import numpy as np
 import random
 import pickle
 import os
+import librosa
 
 
 class Experiments(object):
@@ -52,6 +53,17 @@ class Experiments(object):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             experiment.train()
+            torch.cuda.empty_cache()
+
+    def evaluate_once(self, evaluation_options):
+        for experiment in self._experiments:
+            Experiments.set_deterministic_on(experiment.seed)
+            evaluate_dict = experiment.evaluate_once()
+            # print(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)).shape)
+            wav = librosa.feature.inverse.mfcc_to_audio(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)), 13)
+            librosa.output.write_wav('/home/derekhuang/VQ-VAE-Speech/file.wav', wav, 16000)
+            # print(evaluate_dict['valid_originals'].shape)
+
             torch.cuda.empty_cache()
 
     def evaluate(self, evaluation_options):

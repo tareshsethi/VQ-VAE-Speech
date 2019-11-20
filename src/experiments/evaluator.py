@@ -25,7 +25,8 @@
  #####################################################################################
 
 from dataset.spectrogram_parser import SpectrogramParser
-from dataset.vctk import VCTK
+# from dataset.vctk import VCTK
+from dataset.ibm import IBM
 from error_handling.console_logger import ConsoleLogger
 from evaluation.alignment_stats import AlignmentStats
 from evaluation.embedding_space_stats import EmbeddingSpaceStats
@@ -48,7 +49,8 @@ class Evaluator(object):
         self._model = model
         self._data_stream = data_stream
         self._configuration = configuration
-        self._vctk = VCTK(self._configuration['data_root'], ratio=self._configuration['train_val_split'])
+        # self._vctk = VCTK(self._configuration['data_root'], ratio=self._configuration['train_val_split'])
+        self._ibm = IBM(self._configuration['data_root'], ratio=self._configuration['train_val_split'])
         self._results_path = results_path
         self._experiment_name = experiment_name
 
@@ -82,7 +84,7 @@ class Evaluator(object):
             evaluation_options['compute_groundtruth_average_phonemes_number']:
             alignment_stats = AlignmentStats(
                 self._data_stream,
-                self._vctk,
+                self._ibm,
                 self._configuration,
                 self._device,
                 self._model,
@@ -92,7 +94,7 @@ class Evaluator(object):
             )
         if evaluation_options['compute_alignments']:
             groundtruth_alignments_path = self._results_path + os.sep + \
-                'vctk_{}_groundtruth_alignments.pickle'.format(evaluation_options['alignment_subset'])
+                'ibm_{}_groundtruth_alignments.pickle'.format(evaluation_options['alignment_subset'])
             if not os.path.isfile(groundtruth_alignments_path):
                 alignment_stats.compute_groundtruth_alignments()
                 alignment_stats.compute_groundtruth_bigrams_matrix(wo_diag=True)
@@ -102,7 +104,7 @@ class Evaluator(object):
                 ConsoleLogger.status('Groundtruth alignments already exist')
 
             empirical_alignments_path = self._results_path + os.sep + self._experiment_name + \
-                '_vctk_{}_empirical_alignments.pickle'.format(evaluation_options['alignment_subset'])
+                '_ibm_{}_empirical_alignments.pickle'.format(evaluation_options['alignment_subset'])
             if not os.path.isfile(empirical_alignments_path):
                 alignment_stats.compute_empirical_alignments()
                 alignment_stats.compute_empirical_bigrams_matrix(wo_diag=True)
@@ -164,7 +166,8 @@ class Evaluator(object):
 
     def _compute_comparaison_plot(self, evaluation_entry):
         utterence_key = evaluation_entry['wav_filename'].split('/')[-1].replace('.wav', '')
-        utterence = self._vctk.utterences[utterence_key].replace('\n', '')
+        # print(self._ibm.utterances.keys())
+        # utterence = self._ibm.utterences[utterence_key].replace('\n', '')
         phonemes_alignment_path = os.sep.join(evaluation_entry['wav_filename'].split('/')[:-3]) \
             + os.sep + 'phonemes' + os.sep + utterence_key.split('_')[0] + os.sep \
             + utterence_key + '.TextGrid'
@@ -172,10 +175,10 @@ class Evaluator(object):
         #tg.read(phonemes_alignment_path)
         #for interval in tg.tiers[0]:
     
-        ConsoleLogger.status('Original utterence: {}'.format(utterence))
+        # ConsoleLogger.status('Original utterence: {}'.format(utterence))
 
-        if self._configuration['verbose']:
-            ConsoleLogger.status('utterence: {}'.format(utterence))
+        # if self._configuration['verbose']:
+            # ConsoleLogger.status('utterence: {}'.format(utterence))
 
         spectrogram_parser = SpectrogramParser()
         preprocessed_audio = evaluation_entry['preprocessed_audio'].detach().cpu()[0].numpy().squeeze()
@@ -320,7 +323,7 @@ class Evaluator(object):
                 speaker_id = wav_filenames[0][0].split(os.sep)[-2]
                 val_speaker_ids.add(speaker_id)
 
-                if speaker_id not in os.listdir(self._vctk.raw_folder + os.sep + 'VCTK-Corpus' + os.sep + 'phonemes'):
+                if speaker_id not in os.listdir(self._ibm.raw_folder + os.sep + 'IBM-Corpus' + os.sep + 'phonemes'):
                     # TODO: log the missing folders
                     continue
 

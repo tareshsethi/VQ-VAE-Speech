@@ -53,7 +53,8 @@ class EmbeddingSpaceStats(object):
             mapping = umap.UMAP(
                 n_neighbors=n_neighbors,
                 min_dist=0.0,
-                metric='euclidean'
+                metric='euclidean', 
+                # n_components=3
             )
 
             projection = mapping.fit_transform(quantized_embedding_space_state['quantized_embedding_space'])

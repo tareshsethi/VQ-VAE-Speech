@@ -118,5 +118,12 @@ class Experiment(object):
     def evaluate(self, evaluation_options):
         ConsoleLogger.status("Running the experiment called '{}'".format(self._name))
         ConsoleLogger.status('Begins to evaluate the model')
-        self._evaluator.evaluate(evaluation_options)
+        self._evaluator.evaluate(evaluation_options) 
         ConsoleLogger.success("Succeed to runned the experiment called '{}'".format(self._name))
+    
+    def evaluate_once(self):
+        ConsoleLogger.status("Running the experiment called '{}'".format(self._name))
+        ConsoleLogger.status('Begins to evaluate the model once')
+        evaluate_dict = self._evaluator._evaluate_once() 
+        ConsoleLogger.success("Succeed to runned the experiment called '{}'".format(self._name))
+        return evaluate_dict

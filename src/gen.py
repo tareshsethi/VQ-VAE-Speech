@@ -25,6 +25,8 @@
  #####################################################################################
 
 from error_handling.console_logger import ConsoleLogger
+from dataset.vctk_speech_stream import VCTKSpeechStream
+from dataset.vctk_features_stream import VCTKFeaturesStream
 from dataset.ibm_speech_stream import IBMSpeechStream
 from dataset.ibm_features_stream import IBMFeaturesStream
 from experiments.pipeline_factory import PipelineFactory
@@ -87,7 +89,6 @@ if __name__ == "__main__":
     parser.add_argument('--plot_clustering_metrics_evolution', action='store_true', help='Compute the evolution of the clustering metrics accross different number of embedding vectors')
     parser.add_argument('--check_clustering_metrics_stability_over_seeds', action='store_true', help='Check the evolution of the clustering metrics statbility over different seed values')
     parser.add_argument('--plot_gradient_stats', action='store_true', help='Plot the gradient stats of the training')
-    parser.add_argument('--generate_sample', action='store_true', help='Generate one sample from checkpoint')
     args = parser.parse_args()
     
     evaluation_options = {
@@ -115,43 +116,6 @@ if __name__ == "__main__":
         print(model)
         sys.exit(0)
 
-    if args.plot_experiments_losses:
-        LossesPlotter().plot_training_losses(
-            Experiments.load(args.experiments_configuration_path).experiments,
-            args.experiments_path
-        )
-        sys.exit(0)
+    Experiments.load(args.experiments_configuration_path).evaluate(evaluation_options)
+    ConsoleLogger.success('All evaluating experiments done')
 
-    if args.export_to_features:
-        configuration = load_configuration(default_configuration_path)
-        configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
-        device_configuration = DeviceConfiguration.load_from_configuration(configuration)
-        data_stream = IBMSpeechStream(configuration, device_configuration.gpu_ids, device_configuration.use_cuda)
-        # data_stream = VCTKSpeechStream(configuration, device_configuration.gpu_ids, device_configuration.use_cuda)
-        data_stream.export_to_features(default_dataset_path, configuration)
-        ConsoleLogger.success("IBM exported to a new features dataset at: '{}'".format(
-            default_dataset_path + os.sep + configuration['features_path']))
-        # ConsoleLogger.success("VCTK exported to a new features dataset at: '{}'".format(
-        #     default_dataset_path + os.sep + configuration['features_path']))
-        sys.exit(0)
-
-    if args.evaluate:
-        Experiments.load(args.experiments_configuration_path).evaluate(evaluation_options)
-        ConsoleLogger.success('All evaluating experiments done')
-        sys.exit(0)
-
-    if args.generate_sample:
-        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options)
-        sys.exit(0)
-
-    if args.compute_dataset_stats:
-        configuration = load_configuration(default_configuration_path)
-        configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
-        device_configuration = DeviceConfiguration.load_from_configuration(configuration)
-        data_stream = IBMFeaturesStream(default_dataset_path, configuration, device_configuration.gpu_ids, device_configuration.use_cuda)
-        # data_stream = VCTKFeaturesStream(default_dataset_path, configuration, device_configuration.gpu_ids, device_configuration.use_cuda)
-        data_stream.compute_dataset_stats()
-        sys.exit(0)
-
-    Experiments.load(args.experiments_configuration_path).train()
-    ConsoleLogger.success('All training experiments done')

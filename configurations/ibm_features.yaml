@@ -82,4 +82,4 @@ use_kaiming_normal: False
 
 # jitter layer
 jitter_probability: 0.12
-use_jitter: False
+use_jitter: True

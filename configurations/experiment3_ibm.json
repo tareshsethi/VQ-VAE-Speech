@@ -1,6 +1,6 @@
 {
-    "experiments_path": "../experiments",
-    "results_path": "../results",
+    "experiments_path": "../experiments_with_vctk",
+    "results_path": "../results_with_vctk",
     "configuration_path": "../configurations/ibm_features.yaml",
     "seed": 1234,
     "experiments": {    

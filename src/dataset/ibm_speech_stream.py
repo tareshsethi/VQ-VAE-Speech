@@ -11,7 +11,6 @@ from tqdm import tqdm
 import os
 import pickle
 
-
 class IBMSpeechStream(object):
 
     def __init__(self, configuration, gpu_ids, use_cuda):
