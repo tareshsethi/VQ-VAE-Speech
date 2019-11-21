@@ -182,7 +182,7 @@ class Evaluator(object):
                     'concatenated_quantized': concatenated_quantized,
                     'valid_reconstructions': valid_reconstructions
                 }
-
+# 
             except (OSError, StopIteration):
                 return evaluation_dict
 
