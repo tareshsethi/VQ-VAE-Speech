@@ -30,6 +30,8 @@ from dataset.ibm import IBM
 from error_handling.console_logger import ConsoleLogger
 from evaluation.alignment_stats import AlignmentStats
 from evaluation.embedding_space_stats import EmbeddingSpaceStats
+from dataset.ibm_features_dataset import IBMFeaturesDataset
+from torch.utils.data import DataLoader
 
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
@@ -119,10 +121,20 @@ class Evaluator(object):
         if evaluation_options['compute_groundtruth_average_phonemes_number']:
             alignment_stats.compute_groundtruth_average_phonemes_number()
 
-    def _evaluate_once(self):
+    def _evaluate_once(self, eval_folder, configuration):
         self._model.eval()
-
-        data = next(iter(self._data_stream.validation_loader))
+        normalizer = None
+        if configuration['normalize']:
+            with open(configuration['normalizer_path'], 'rb') as file:
+                normalizer = pickle.load(file)
+        sample = IBMFeaturesDataset('../data/ibm', eval_folder, normalizer, features_path=configuration['features_path'])
+        validation_loader = DataLoader(
+            sample,
+            batch_size=1,
+            num_workers=configuration['num_workers'],
+            pin_memory=True
+        )
+        data = next(iter(validation_loader))
 
         preprocessed_audio = data['preprocessed_audio'].to(self._device)
         valid_originals = data['input_features'].to(self._device)

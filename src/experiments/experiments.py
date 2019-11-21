@@ -55,13 +55,14 @@ class Experiments(object):
             experiment.train()
             torch.cuda.empty_cache()
 
-    def evaluate_once(self, evaluation_options):
+    def evaluate_once(self, evaluation_options, eval_folder, configuration):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
-            evaluate_dict = experiment.evaluate_once()
+            evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
+            print(evaluate_dict['wav_filename'])
             # print(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)).shape)
-            wav = librosa.feature.inverse.mfcc_to_audio(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)), 13)
-            librosa.output.write_wav('/home/derekhuang/VQ-VAE-Speech/file.wav', wav, 16000)
+            # wav = librosa.feature.inverse.mfcc_to_audio(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)), 13)
+            # librosa.output.write_wav('/home/derekhuang/VQ-VAE-Speech/file.wav', wav, 16000)
             # print(evaluate_dict['valid_originals'].shape)
 
             torch.cuda.empty_cache()

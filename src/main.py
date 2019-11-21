@@ -88,6 +88,7 @@ if __name__ == "__main__":
     parser.add_argument('--check_clustering_metrics_stability_over_seeds', action='store_true', help='Check the evolution of the clustering metrics statbility over different seed values')
     parser.add_argument('--plot_gradient_stats', action='store_true', help='Plot the gradient stats of the training')
     parser.add_argument('--generate_sample', action='store_true', help='Generate one sample from checkpoint')
+    parser.add_argument('--sample_folder', nargs='?', type=str, help='The folder containing the evaluation sample')
     args = parser.parse_args()
     
     evaluation_options = {
@@ -104,6 +105,26 @@ if __name__ == "__main__":
         'check_clustering_metrics_stability_over_seeds': args.check_clustering_metrics_stability_over_seeds,
         'plot_gradient_stats': args.plot_gradient_stats
     }
+
+    # sample_evaluate_options = {
+    #     'preprocessed_audio': preprocessed_audio,
+    #     'valid_originals': valid_originals,
+    #     'speaker_ids': speaker_ids,
+    #     'target': target,
+    #     'wav_filename': wav_filename,
+    #     'shifting_time': shifting_time,
+    #     'preprocessed_length': preprocessed_length,
+    #     'batch_size': batch_size,
+    #     'quantized': quantized,
+    #     'encodings': encodings,
+    #     'distances': distances,
+    #     'encoding_indices': encoding_indices,
+    #     'encoding_distances': encoding_distances,
+    #     'embedding_distances': embedding_distances,
+    #     'frames_vs_embedding_distances': frames_vs_embedding_distances,
+    #     'concatenated_quantized': concatenated_quantized,
+    #     'valid_reconstructions': valid_reconstructions
+    # }
 
     # If specified, print the summary of the model using the CPU device
     if args.summary:
@@ -141,7 +162,10 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if args.generate_sample:
-        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options)
+        configuration = load_configuration(default_configuration_path)
+        configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
+        eval_folder = args.sample_folder
+        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options, eval_folder, configuration)
         sys.exit(0)
 
     if args.compute_dataset_stats:
