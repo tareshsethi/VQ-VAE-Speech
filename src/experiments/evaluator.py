@@ -123,6 +123,7 @@ class Evaluator(object):
 
     def _evaluate_once(self, eval_folder, configuration):
         self._model.eval()
+
         normalizer = None
         if configuration['normalize']:
             with open(configuration['normalizer_path'], 'rb') as file:
@@ -134,48 +135,58 @@ class Evaluator(object):
             num_workers=configuration['num_workers'],
             pin_memory=True
         )
-        data = next(iter(validation_loader))
 
-        preprocessed_audio = data['preprocessed_audio'].to(self._device)
-        valid_originals = data['input_features'].to(self._device)
-        speaker_ids = data['speaker_id'].to(self._device)
-        target = data['output_features'].to(self._device)
-        wav_filename = data['wav_filename']
-        shifting_time = data['shifting_time'].to(self._device)
-        preprocessed_length = data['preprocessed_length'].to(self._device)
+        evaluation_dict = {}
 
-        valid_originals = valid_originals.permute(0, 2, 1).contiguous().float()
-        batch_size = valid_originals.size(0)
-        target = target.permute(0, 2, 1).contiguous().float()
-        wav_filename = wav_filename[0][0]
+        validation_dataset = iter(validation_loader)
+        while True:
+            try:
+                data = next(validation_dataset)
+                preprocessed_audio = data['preprocessed_audio'].to(self._device)
+                valid_originals = data['input_features'].to(self._device)
+                speaker_ids = data['speaker_id'].to(self._device)
+                target = data['output_features'].to(self._device)
+                wav_filename = data['wav_filename']
+                shifting_time = data['shifting_time'].to(self._device)
+                preprocessed_length = data['preprocessed_length'].to(self._device)
 
-        z = self._model.encoder(valid_originals)
-        z = self._model.pre_vq_conv(z)
-        _, quantized, _, encodings, distances, encoding_indices, _, \
-            encoding_distances, embedding_distances, frames_vs_embedding_distances, \
-            concatenated_quantized = self._model.vq(z)
-        valid_reconstructions = self._model.decoder(quantized, self._data_stream.speaker_dic, speaker_ids)[0]
+                valid_originals = valid_originals.permute(0, 2, 1).contiguous().float()
+                batch_size = valid_originals.size(0)
+                target = target.permute(0, 2, 1).contiguous().float()
+                wav_filename = wav_filename[0][0]
 
-        return {
-            'preprocessed_audio': preprocessed_audio,
-            'valid_originals': valid_originals,
-            'speaker_ids': speaker_ids,
-            'target': target,
-            'wav_filename': wav_filename,
-            'shifting_time': shifting_time,
-            'preprocessed_length': preprocessed_length,
-            'batch_size': batch_size,
-            'quantized': quantized,
-            'encodings': encodings,
-            'distances': distances,
-            'encoding_indices': encoding_indices,
-            'encoding_distances': encoding_distances,
-            'embedding_distances': embedding_distances,
-            'frames_vs_embedding_distances': frames_vs_embedding_distances,
-            'concatenated_quantized': concatenated_quantized,
-            'valid_reconstructions': valid_reconstructions
-        }
+                z = self._model.encoder(valid_originals)
+                z = self._model.pre_vq_conv(z)
+                _, quantized, _, encodings, distances, encoding_indices, _, \
+                    encoding_distances, embedding_distances, frames_vs_embedding_distances, \
+                    concatenated_quantized = self._model.vq(z)
+                valid_reconstructions = self._model.decoder(quantized, self._data_stream.speaker_dic, speaker_ids)[0]
 
+                evaluation_dict[wav_filename] = {
+                    'preprocessed_audio': preprocessed_audio,
+                    'valid_originals': valid_originals,
+                    'speaker_ids': speaker_ids,
+                    'target': target,
+                    'wav_filename': wav_filename,
+                    'shifting_time': shifting_time,
+                    'preprocessed_length': preprocessed_length,
+                    'batch_size': batch_size,
+                    'quantized': quantized,
+                    'encodings': encodings,
+                    'distances': distances,
+                    'encoding_indices': encoding_indices,
+                    'encoding_distances': encoding_distances,
+                    'embedding_distances': embedding_distances,
+                    'frames_vs_embedding_distances': frames_vs_embedding_distances,
+                    'concatenated_quantized': concatenated_quantized,
+                    'valid_reconstructions': valid_reconstructions
+                }
+
+            except (OSError, StopIteration):
+                return evaluation_dict
+
+
+        
     def _compute_comparaison_plot(self, evaluation_entry):
         utterence_key = evaluation_entry['wav_filename'].split('/')[-1].replace('.wav', '')
         # print(self._ibm.utterances.keys())

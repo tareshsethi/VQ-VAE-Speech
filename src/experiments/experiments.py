@@ -60,15 +60,10 @@ class Experiments(object):
             Experiments.set_deterministic_on(experiment.seed)
             evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
             path = '/home/derekhuang/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
-            f = open(path + '/dict.txt',"w")
-            f.write(str(evaluate_dict))
-            f.close()
-            print(evaluate_dict['wav_filename'])
-            # print(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)).shape)
-            # wav = librosa.feature.inverse.mfcc_to_audio(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)), 13)
-            # librosa.output.write_wav('/home/derekhuang/VQ-VAE-Speech/file.wav', wav, 16000)
-            # print(evaluate_dict['valid_originals'].shape)
-
+            with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
+                f.write(str(evaluate_dict))
+            with open('{0}/{1}.pickle'.format(path, eval_folder), 'wb') as handle:
+                pickle.dump(evaluate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
             torch.cuda.empty_cache()
 
     def evaluate(self, evaluation_options):
