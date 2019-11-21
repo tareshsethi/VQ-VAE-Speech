@@ -59,6 +59,10 @@ class Experiments(object):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
+            path = '/home/derekhuang/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
+            f = open(path + '/dict.txt',"w")
+            f.write(str(evaluate_dict))
+            f.close()
             print(evaluate_dict['wav_filename'])
             # print(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)).shape)
             # wav = librosa.feature.inverse.mfcc_to_audio(evaluate_dict['valid_reconstructions'].cpu().detach().numpy()[0,:].T.reshape((51,1)), 13)
