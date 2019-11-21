@@ -129,6 +129,7 @@ class Evaluator(object):
             with open(configuration['normalizer_path'], 'rb') as file:
                 normalizer = pickle.load(file)
         sample = IBMFeaturesDataset('../data/ibm', eval_folder, normalizer, features_path=configuration['features_path'])
+
         validation_loader = DataLoader(
             sample,
             batch_size=1,
@@ -162,7 +163,7 @@ class Evaluator(object):
                     concatenated_quantized = self._model.vq(z)
                 valid_reconstructions = self._model.decoder(quantized, self._data_stream.speaker_dic, speaker_ids)[0]
 
-                evaluation_dict[wav_filename] = {
+                evaluation_dict[wav_filename.split('/')[-1]] = {
                     'preprocessed_audio': preprocessed_audio,
                     'valid_originals': valid_originals,
                     'speaker_ids': speaker_ids,
