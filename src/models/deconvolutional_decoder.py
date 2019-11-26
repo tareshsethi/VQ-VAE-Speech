@@ -38,7 +38,7 @@ import torch.nn.functional as F
 
 class DeconvolutionalDecoder(nn.Module):
     
-    def __init__(self, in_channels, out_channels, num_hiddens, num_residual_layers,
+    def __init__(self, in_channels, out_channels, output_type, num_hiddens, num_residual_layers,
         num_residual_hiddens, use_kaiming_normal, use_jitter, jitter_probability,
         use_speaker_conditioning, device, verbose=False):
 
@@ -48,6 +48,7 @@ class DeconvolutionalDecoder(nn.Module):
         self._use_speaker_conditioning = use_speaker_conditioning
         self._device = device
         self._verbose = verbose
+        self._output_type = output_type
 
         if self._use_jitter:
             self._jitter = Jitter(jitter_probability)
@@ -63,7 +64,14 @@ class DeconvolutionalDecoder(nn.Module):
             use_kaiming_normal=use_kaiming_normal
         )
 
-        self._upsample = nn.Upsample(scale_factor=2)
+        if self._output_type == 'log_filterbank':
+            self._upsample = nn.Upsample(scale_factor=2)
+        elif self._output_type == 'audio':
+            self._upsample_1 = nn.Upsample(scale_factor=8)
+            self._upsample_2 = nn.Upsample(scale_factor=8)
+            self._upsample_3 = nn.Upsample(scale_factor=5)
+        else:
+            raise ('Not Implemented')
 
         self._residual_stack = ResidualStack(
             in_channels=num_hiddens,
@@ -110,28 +118,60 @@ class DeconvolutionalDecoder(nn.Module):
                 device=self._device, gin_channels=40, expand=True)
             x = torch.cat([x, speaker_embedding], dim=1).to(self._device)
 
+        # print (x.shape)
+
         x = self._conv_1(x)
         if self._verbose:
             ConsoleLogger.status('[FEATURES_DEC] _conv_1 output size: {}'.format(x.size()))
 
-        x = self._upsample(x)
-        if self._verbose:
-            ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))
-        
+        # print (x.shape)
+
+        if self._output_type == 'audio':
+            x = self._upsample_1(x)
+            if self._verbose:
+                ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))
+
+        else:
+            x = self._upsample(x)
+            if self._verbose:
+                ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))
+    
+        # print (x.shape)
+
         x = self._residual_stack(x)
         if self._verbose:
             ConsoleLogger.status('[FEATURES_DEC] _residual_stack output size: {}'.format(x.size()))
         
+        # print (x.shape)
+
         x = F.relu(self._conv_trans_1(x))
         if self._verbose:
             ConsoleLogger.status('[FEATURES_DEC] _conv_trans_1 output size: {}'.format(x.size()))
+
+        # print (x.shape)
+
+        if self._output_type == 'audio':
+
+            x = self._upsample_2(x)
+            if self._verbose:
+                ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))
+
+        # print (x.shape)
 
         x = F.relu(self._conv_trans_2(x))
         if self._verbose:
             ConsoleLogger.status('[FEATURES_DEC] _conv_trans_2 output size: {}'.format(x.size()))
 
+        print (x.shape)
+
+        if self._output_type == 'audio':
+
+            x = self._upsample_3(x)
+            if self._verbose:
+                ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))
+
         x = self._conv_trans_3(x)
         if self._verbose:
             ConsoleLogger.status('[FEATURES_DEC] _conv_trans_3 output size: {}'.format(x.size()))
-        
+
         return x

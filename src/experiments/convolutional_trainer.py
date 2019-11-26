@@ -40,11 +40,17 @@ class ConvolutionalTrainer(BaseTrainer):
         self._criterion = kwargs.get('criterion', nn.MSELoss())
         self._optimizer = kwargs.get('optimizer',
             optim.Adam(self._model.parameters(), lr=configuration['learning_rate'], amsgrad=True))
+        self._configuration = configuration
 
     def iterate(self, data, epoch, iteration, iterations, train_bar):
         source = data['input_features'].to(self._device)
         speaker_id = data['speaker_id'].to(self._device)
-        target = data['output_features'].to(self._device).permute(0, 2, 1).contiguous().float()
+        if self._configuration['output_type'] == 'log_filterbank':
+            target = data['output_features'].to(self._device).permute(0, 2, 1).contiguous().float()
+        elif self._configuration['output_type'] == 'audio':
+            target = data['preprocessed_audio'].to(self._device).squeeze(1).squeeze(1).permute(0, 2, 1).contiguous().float()
+        else:
+            raise ('not implemented')
 
         self._optimizer.zero_grad()
 

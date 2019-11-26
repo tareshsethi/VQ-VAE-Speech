@@ -1,5 +1,6 @@
 decoder_type: 'deconvolutional'
 trainer_type: 'convolutional'
+output_type: 'log_filterbank'
 verbose: False
 
 # Training
@@ -70,6 +71,11 @@ output_features_dim: 47
 output_features_filters: 13
 augment_input_features: True
 augment_output_features: True
+
+# Deconvolutional Decoder Audio output
+# output_dim is audio length
+output_audio_filters: 1
+# num_hidden_decoder: 
 
 # Conv
 

@@ -6,11 +6,12 @@
     "experiments": {    
         "baseline": {
             "num_epochs": 1000, "batch_size": 4,
-            "num_embeddings": 44,
+            "num_embeddings": 3,
             "use_device": "cuda:0",
             "normalize": true,
             "use_jitter": true,
-            "jitter_probability": 0.1
+            "jitter_probability": 0.1,
+            "output_type": "audio"
         }
     }
 }

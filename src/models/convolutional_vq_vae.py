@@ -41,9 +41,16 @@ class ConvolutionalVQVAE(nn.Module):
     def __init__(self, configuration, device):
         super(ConvolutionalVQVAE, self).__init__()
 
-        self._output_features_filters = configuration['output_features_filters'] * 3 if configuration['augment_output_features'] else configuration['output_features_filters']
-        self._output_features_dim = configuration['output_features_dim']
+        if configuration['output_type'] == 'log_filterbank':
+            self._output_filters = configuration['output_features_filters'] * 3 if configuration['augment_output_features'] else configuration['output_features_filters']
+            self._output_dim = configuration['output_features_dim']
+        elif configuration['output_type'] == 'audio':
+            self._output_filters = configuration['output_audio_filters']
+            self._output_dim = configuration['length']
+        else:
+            raise ("Output type {} is not implemented".format(configuration['output_type']))
         self._verbose = configuration['verbose']
+        self._configuration = configuration
 
         self._encoder = ConvolutionalEncoder(
             in_channels=configuration['input_features_dim'],
@@ -83,7 +90,8 @@ class ConvolutionalVQVAE(nn.Module):
 
         self._decoder = DeconvolutionalDecoder(
             in_channels=configuration['embedding_dim'],
-            out_channels=self._output_features_filters,
+            out_channels=self._output_filters,
+            output_type=configuration['output_type'],
             num_hiddens=configuration['num_hiddens'],
             num_residual_layers=configuration['num_residual_layers'],
             num_residual_hiddens=configuration['residual_channels'],
@@ -130,10 +138,15 @@ class ConvolutionalVQVAE(nn.Module):
 
         reconstructed_x = self._decoder(quantized, speaker_dic, speaker_id)
 
-        input_features_size = x.size(2)
+        if self._configuration['output_type'] == 'log_filterbank':
+            input_features_size = x.size(2)
+        elif self._configuration['output_type'] == 'audio':
+            input_features_size = self._configuration['length'] + 1
+        else:
+            raise ('Not Implemented')
         output_features_size = reconstructed_x.size(2)
 
-        reconstructed_x = reconstructed_x.view(-1, self._output_features_filters, output_features_size)
+        reconstructed_x = reconstructed_x.view(-1, self._output_filters, output_features_size)
         reconstructed_x = reconstructed_x[:, :, :-(output_features_size-input_features_size)]
         
         return reconstructed_x, vq_loss, losses, perplexity, encoding_indices, concatenated_quantized
