@@ -55,6 +55,17 @@ class Experiments(object):
             experiment.train()
             torch.cuda.empty_cache()
 
+    def save_embedding(self):
+        for experiment in self._experiments:
+            Experiments.set_deterministic_on(experiment.seed)
+            embedding_list = experiment.save_embeddings()
+            path = '/home/derekhuang/VQ-VAE-Speech/data/ibm/features/'
+            with open('{0}/embedding.txt'.format(path), 'w') as f:
+                f.write(str(embedding_list))
+            with open('{0}/embedding.pickle'.format(path), 'wb') as handle:
+                pickle.dump(embedding_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            torch.cuda.empty_cache()
+
     def evaluate_once(self, evaluation_options, eval_folder, configuration):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)

@@ -9,7 +9,7 @@ start_epoch: 0
 num_epochs: 5
 num_workers: 1
 train_val_split: 0.8
-learning_rate: 0.0002
+learning_rate: 0.00002
 normalize: False
 normalizer_path: '../data/ibm/ibm-mfcc-stats.pickle'
 use_speaker_conditioning: False
@@ -37,7 +37,7 @@ num_hiddens: 768
 input_dim: 256
 
 # VQ
-num_embeddings: 29 # The higher this value, the higher the capacity in the information bottleneck.
+num_embeddings: 44 # The higher this value, the higher the capacity in the information bottleneck.
 
 # This value is not that important, usually 64 works.
 # This will not change the capacity in the information-bottleneck.

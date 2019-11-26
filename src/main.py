@@ -89,6 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('--plot_gradient_stats', action='store_true', help='Plot the gradient stats of the training')
     parser.add_argument('--generate_sample', action='store_true', help='Generate one sample from checkpoint')
     parser.add_argument('--sample_folder', nargs='?', type=str, help='The folder containing the evaluation sample')
+    parser.add_argument('--save_embeddings', action='store_true', help='Store the prototype embeddings')
     args = parser.parse_args()
     
     evaluation_options = {
@@ -168,6 +169,12 @@ if __name__ == "__main__":
         evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options, eval_folder, configuration)
         sys.exit(0)
 
+    if args.save_embeddings:
+        configuration = load_configuration(default_configuration_path)
+        configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
+        evaluation_dict = Experiments.load(args.experiments_configuration_path).save_embedding()
+        sys.exit(0)
+
     if args.compute_dataset_stats:
         configuration = load_configuration(default_configuration_path)
         configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
@@ -176,6 +183,8 @@ if __name__ == "__main__":
         # data_stream = VCTKFeaturesStream(default_dataset_path, configuration, device_configuration.gpu_ids, device_configuration.use_cuda)
         data_stream.compute_dataset_stats()
         sys.exit(0)
+    
+
 
     Experiments.load(args.experiments_configuration_path).train()
     ConsoleLogger.success('All training experiments done')
