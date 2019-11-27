@@ -59,7 +59,7 @@ class Experiments(object):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             embedding_list = experiment.save_embeddings()
-            path = '/home/derekhuang/VQ-VAE-Speech/data/ibm/features/'
+            path = '../data/ibm/features/'
             with open('{0}/embedding.txt'.format(path), 'w') as f:
                 f.write(str(embedding_list))
             with open('{0}/embedding.pickle'.format(path), 'wb') as handle:
@@ -70,7 +70,7 @@ class Experiments(object):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
-            path = '/home/derekhuang/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
+            path = '../data/ibm/features/{}'.format(eval_folder)
             with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
                 f.write(str(evaluate_dict))
             with open('{0}/{1}.pickle'.format(path, eval_folder), 'wb') as handle:
