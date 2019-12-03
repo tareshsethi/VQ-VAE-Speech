@@ -34,6 +34,7 @@ from dataset.ibm_features_dataset import IBMFeaturesDataset
 from torch.utils.data import DataLoader
 
 import matplotlib.pyplot as plt
+import torch
 import torch.nn.functional as F
 import os
 import numpy as np
@@ -143,6 +144,12 @@ class Evaluator(object):
         while True:
             try:
                 data = next(validation_dataset)
+                one_hot = data['one_hot'].to(self._device)
+                shape = list(one_hot.shape)
+                new_shape = tuple(shape[:3] + [8000] + [shape[4]])
+                one_hot_padded = torch.zeros(new_shape)
+                one_hot_padded[:,:,:,:self._configuration['length'],:] = one_hot
+                one_hot_padded = one_hot_padded.to(self._device)
                 preprocessed_audio = data['preprocessed_audio'].to(self._device)
                 valid_originals = data['input_features'].to(self._device)
                 speaker_ids = data['speaker_id'].to(self._device)
@@ -161,7 +168,11 @@ class Evaluator(object):
                 _, quantized, _, encodings, distances, encoding_indices, _, \
                     encoding_distances, embedding_distances, frames_vs_embedding_distances, \
                     concatenated_quantized = self._model.vq(z)
-                valid_reconstructions = self._model.decoder(quantized, self._data_stream.speaker_dic, speaker_ids)[0]
+                if 'wavenet_type' in configuration:
+                    # valid_reconstructions = self._model.decoder(one_hot_padded.squeeze(1).squeeze(-1), quantized, None, softmax=True)[0]
+                    valid_reconstructions = self._model.decoder.incremental_forward(one_hot_padded.squeeze(1).squeeze(-1)[:,:,0].unsqueeze(-1), quantized, None, softmax=True)[0]
+                else:
+                    valid_reconstructions = self._model.decoder(quantized, self._data_stream.speaker_dic, speaker_ids)[0]
 
                 evaluation_dict[wav_filename.split('/')[-1]] = {
                     'preprocessed_audio': preprocessed_audio,

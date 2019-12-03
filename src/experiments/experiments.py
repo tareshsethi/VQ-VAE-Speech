@@ -38,6 +38,8 @@ import random
 import pickle
 import os
 import librosa
+from speech_utils.mu_law import MuLaw
+
 
 
 class Experiments(object):
@@ -59,12 +61,38 @@ class Experiments(object):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
-            path = '/home/derekhuang/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
-            with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
-                f.write(str(evaluate_dict))
-            with open('{0}/{1}.pickle'.format(path, eval_folder), 'wb') as handle:
-                pickle.dump(evaluate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            torch.cuda.empty_cache()
+            path = '/home/taresh/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
+            
+            # with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
+            #     f.write(str(evaluate_dict))
+            # print (evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['valid_reconstructions'].shape)
+            print (evaluate_dict.keys())
+            a = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk3.wav']['preprocessed_audio'].detach().cpu().numpy())
+            a2 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['preprocessed_audio'].detach().cpu().numpy())
+            a3 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk2.wav']['preprocessed_audio'].detach().cpu().numpy())
+
+            b = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk3.wav']['valid_reconstructions'].detach().cpu().numpy())
+            b2 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['valid_reconstructions'].detach().cpu().numpy())
+            b3 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk2.wav']['valid_reconstructions'].detach().cpu().numpy())
+
+            b = MuLaw.decode(np.argmax(b, axis=0))
+            b2 = MuLaw.decode(np.argmax(b2, axis=0))
+            b3 = MuLaw.decode(np.argmax(b3, axis=0))
+
+            # import sys
+            # sys.exit(0)
+
+            librosa.output.write_wav('val_targeta.wav', a, configuration['sampling_rate'])
+            librosa.output.write_wav('val_targeta2.wav', a2, configuration['sampling_rate'])
+            librosa.output.write_wav('val_targeta3.wav', a3, configuration['sampling_rate'])
+
+            librosa.output.write_wav('valb.wav', b, configuration['sampling_rate'])
+            librosa.output.write_wav('valb2.wav', b2, configuration['sampling_rate'])
+            librosa.output.write_wav('valb3.wav', b3, configuration['sampling_rate'])
+
+            # with open('{0}/{1}.pickle'.format(path, eval_folder), 'wb') as handle:
+            #     pickle.dump(evaluate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            # torch.cuda.empty_cache()
 
     def evaluate(self, evaluation_options):
         # TODO: put all types of evaluation in evaluation_options, and skip this loop if none of them are set to true

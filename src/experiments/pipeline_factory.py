@@ -27,8 +27,10 @@
 from experiments.device_configuration import DeviceConfiguration
 from experiments.checkpoint_utils import CheckpointUtils
 from experiments.convolutional_trainer import ConvolutionalTrainer
+from experiments.wavenet_trainer import WavenetTrainer
 from experiments.evaluator import Evaluator
 from models.convolutional_vq_vae import ConvolutionalVQVAE
+from models.wavenet_vq_vae import WaveNetVQVAE
 from error_handling.console_logger import ConsoleLogger
 from dataset.vctk_features_stream import VCTKFeaturesStream
 from dataset.ibm_features_stream import IBMFeaturesStream
@@ -52,13 +54,18 @@ class PipelineFactory(object):
             evaluator = Evaluator(device_configuration.device, vqvae_model, data_stream, configuration,
                 results_path, experiment_name)
         else:
-            raise NotImplementedError("Decoder type '{}' isn't implemented for now".format(configuration['decoder_type']))
+            vqvae_model = WaveNetVQVAE(configuration, {}, device_configuration.device).to(device_configuration.device)
+            evaluator = Evaluator(device_configuration.device, vqvae_model, data_stream, configuration,
+                results_path, experiment_name)
+            # raise NotImplementedError("Decoder type '{}' isn't implemented for now".format(configuration['decoder_type']))
 
         if configuration['trainer_type'] == 'convolutional':
             trainer = ConvolutionalTrainer(device_configuration.device, data_stream,
                 configuration, experiments_path, experiment_name, **{'model': vqvae_model})
         else:
-            raise NotImplementedError("Trainer type '{}' isn't implemented for now".format(configuration['trainer_type']))
+            trainer = WavenetTrainer(device_configuration.device, data_stream,
+                configuration, experiments_path, experiment_name, **{'model': vqvae_model})
+            # raise NotImplementedError("Trainer type '{}' isn't implemented for now".format(configuration['trainer_type']))
 
         vqvae_model = nn.DataParallel(vqvae_model, device_ids=device_configuration.gpu_ids) if device_configuration.use_data_parallel else vqvae_model
 
@@ -139,7 +146,14 @@ class PipelineFactory(object):
                 # Load the model and optimizer state dicts
                 vqvae_model, vqvae_optimizer = load_state_dicts(vqvae_model, checkpoint, 'model', 'optimizer')
             else:
-                raise NotImplementedError("Decoder type '{}' isn't implemented for now".format(configuration['decoder_type']))
+                # Create the model and map it to the specified device
+                vqvae_model = WaveNetVQVAE(configuration, {}, device_configuration.device).to(device_configuration.device)
+                evaluator = Evaluator(device_configuration.device, vqvae_model, data_stream,
+                    configuration, results_path, experiment_name)
+
+                # Load the model and optimizer state dicts
+                vqvae_model, vqvae_optimizer = load_state_dicts(vqvae_model, checkpoint, 'model', 'optimizer')
+                # raise NotImplementedError("Decoder type '{}' isn't implemented for now".format(configuration['decoder_type']))
 
             # Temporary backward compatibility
             if 'trainer_type' not in configuration:
@@ -151,7 +165,10 @@ class PipelineFactory(object):
                     configuration, experiments_path, experiment_name, **{'model': vqvae_model, 
                     'optimizer': vqvae_optimizer})
             else:
-                raise NotImplementedError("Trainer type '{}' isn't implemented for now".format(configuration['trainer_type']))
+                trainer = WavenetTrainer(device_configuration.device, data_stream,
+                    configuration, experiments_path, experiment_name, **{'model': vqvae_model, 
+                    'optimizer': vqvae_optimizer})
+                # raise NotImplementedError("Trainer type '{}' isn't implemented for now".format(configuration['trainer_type']))
 
             # Use data parallelization if needed and available
             vqvae_model = nn.DataParallel(vqvae_model, device_ids=device_configuration.gpu_ids) \
