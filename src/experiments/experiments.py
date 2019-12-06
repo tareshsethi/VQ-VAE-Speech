@@ -29,6 +29,8 @@ from error_handling.console_logger import ConsoleLogger
 from evaluation.alignment_stats import AlignmentStats
 from evaluation.embedding_space_stats import EmbeddingSpaceStats
 from evaluation.gradient_stats import GradientStats
+from astropy.convolution.kernels import Gaussian2DKernel
+from astropy.convolution import convolve
 
 import json
 import yaml
@@ -40,6 +42,8 @@ import os
 import librosa
 from speech_utils.mu_law import MuLaw
 
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 
 class Experiments(object):
@@ -57,42 +61,92 @@ class Experiments(object):
             experiment.train()
             torch.cuda.empty_cache()
 
-    def evaluate_once(self, evaluation_options, eval_folder, configuration):
+    def save_embedding(self):
+        for experiment in self._experiments:
+            Experiments.set_deterministic_on(experiment.seed)
+            embedding_list = experiment.save_embeddings()
+            path = '../data/ibm/features/'
+            with open('{0}/embedding.txt'.format(path), 'w') as f:
+                f.write(str(embedding_list))
+            with open('{0}/embedding.pickle'.format(path), 'wb') as handle:
+                pickle.dump(embedding_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            torch.cuda.empty_cache()
+
+    def evaluate_once(self, evaluation_options, eval_folder, configuration, heatmap):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
-            path = '/home/taresh/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
+            # path = '/home/taresh/VQ-VAE-Speech/data/ibm/features/{}'.format(eval_folder)
             
-            # with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
-            #     f.write(str(evaluate_dict))
-            # print (evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['valid_reconstructions'].shape)
-            print (evaluate_dict.keys())
-            a = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk3.wav']['preprocessed_audio'].detach().cpu().numpy())
-            a2 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['preprocessed_audio'].detach().cpu().numpy())
-            a3 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk2.wav']['preprocessed_audio'].detach().cpu().numpy())
+            # # with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
+            # #     f.write(str(evaluate_dict))
+            # # print (evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['valid_reconstructions'].shape)
+            # print (evaluate_dict.keys())
+            # a = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk3.wav']['preprocessed_audio'].detach().cpu().numpy())
+            # a2 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['preprocessed_audio'].detach().cpu().numpy())
+            # a3 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk2.wav']['preprocessed_audio'].detach().cpu().numpy())
 
-            b = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk3.wav']['valid_reconstructions'].detach().cpu().numpy())
-            b2 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['valid_reconstructions'].detach().cpu().numpy())
-            b3 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk2.wav']['valid_reconstructions'].detach().cpu().numpy())
+            # b = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk3.wav']['valid_reconstructions'].detach().cpu().numpy())
+            # b2 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk1.wav']['valid_reconstructions'].detach().cpu().numpy())
+            # b3 = np.squeeze(evaluate_dict['EH_2401_fuel-tax_con_opening_JLchunk2.wav']['valid_reconstructions'].detach().cpu().numpy())
 
-            b = MuLaw.decode(np.argmax(b, axis=0))
-            b2 = MuLaw.decode(np.argmax(b2, axis=0))
-            b3 = MuLaw.decode(np.argmax(b3, axis=0))
+            # b = MuLaw.decode(np.argmax(b, axis=0))
+            # b2 = MuLaw.decode(np.argmax(b2, axis=0))
+            # b3 = MuLaw.decode(np.argmax(b3, axis=0))
 
-            # import sys
-            # sys.exit(0)
+            # # import sys
+            # # sys.exit(0)
 
-            librosa.output.write_wav('val_targeta.wav', a, configuration['sampling_rate'])
-            librosa.output.write_wav('val_targeta2.wav', a2, configuration['sampling_rate'])
-            librosa.output.write_wav('val_targeta3.wav', a3, configuration['sampling_rate'])
+            # librosa.output.write_wav('val_targeta.wav', a, configuration['sampling_rate'])
+            # librosa.output.write_wav('val_targeta2.wav', a2, configuration['sampling_rate'])
+            # librosa.output.write_wav('val_targeta3.wav', a3, configuration['sampling_rate'])
 
-            librosa.output.write_wav('valb.wav', b, configuration['sampling_rate'])
-            librosa.output.write_wav('valb2.wav', b2, configuration['sampling_rate'])
-            librosa.output.write_wav('valb3.wav', b3, configuration['sampling_rate'])
+            # librosa.output.write_wav('valb.wav', b, configuration['sampling_rate'])
+            # librosa.output.write_wav('valb2.wav', b2, configuration['sampling_rate'])
+            # librosa.output.write_wav('valb3.wav', b3, configuration['sampling_rate'])
 
             # with open('{0}/{1}.pickle'.format(path, eval_folder), 'wb') as handle:
             #     pickle.dump(evaluate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
             # torch.cuda.empty_cache()
+            print(evaluate_dict.keys())
+            # print("concatenate quantized {}".format(evaluate_dict['OAF_youth_happy.wav']['concatenated_quantized'].shape))
+            # print("quantized {}".format(evaluate_dict['OAF_youth_happy.wav']['quantized'].shape))
+            # print("encoding_indices {}".format(evaluate_dict['OAF_youth_happy.wav']['encoding_indices'].shape))
+            # print("encodings {}".format(evaluate_dict['OAF_youth_happy.wav']['encodings'].shape))
+            # print("distances {}".format(evaluate_dict['OAF_youth_happy.wav']['distances'].shape))
+            path = '../data/ibm/features/{}'.format(eval_folder)
+            with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
+                f.write(str(evaluate_dict))
+            if heatmap:
+                keys = list(evaluate_dict.keys())
+                first_plot = evaluate_dict[keys[0]]['quantized']
+                second_plot = evaluate_dict[keys[1]]['quantized']
+                
+
+                gs = gridspec.GridSpec(1, 3)
+                # gs.update(wspace=0.000005, hspace=0.00001)
+                fig = plt.figure(figsize=(15,10))
+                ax = fig.add_subplot(gs[0, 0]) # row 0, col 0
+                first_plot = convolve(np.squeeze(first_plot.cpu().detach().numpy()), Gaussian2DKernel(stddev=1))
+                ax.imshow(np.squeeze(first_plot), cmap=plt.cm.RdBu, interpolation='nearest')
+
+                ax = fig.add_subplot(gs[0, 1]) # row 0, col 0
+                second_plot = convolve(np.squeeze(second_plot.cpu().detach().numpy()), Gaussian2DKernel(stddev=1))
+                ax.imshow(np.squeeze(second_plot), cmap=plt.cm.RdBu, interpolation='nearest')
+
+                ax = fig.add_subplot(gs[0, 2])
+                # convolved_map = convolve(np.squeeze(hm.cpu().detach().numpy()), Gaussian2DKernel(stddev=1))
+                convolved_map = first_plot - second_plot
+                im = ax.imshow(convolved_map, cmap=plt.cm.RdBu, interpolation='nearest')
+            
+                fig.subplots_adjust(right=0.8)
+                cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+                fig.colorbar(im, cax=cbar_ax)
+                # plt.subplots_adjust(wspace=0, hspace=0)
+                fig.savefig('{}/heatmap.png'.format(path), bbox_inches='tight')
+                with open('{0}/heatmap.pickle'.format(path, eval_folder), 'wb') as handle:
+                    pickle.dump(convolved_map, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            torch.cuda.empty_cache()
 
     def evaluate(self, evaluation_options):
         # TODO: put all types of evaluation in evaluation_options, and skip this loop if none of them are set to true

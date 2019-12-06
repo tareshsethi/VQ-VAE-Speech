@@ -34,7 +34,7 @@ class DeviceConfiguration(object):
     def __init__(self, use_cuda, device, gpu_ids, use_data_parallel):
         self._use_cuda = use_cuda
         self._device = device
-        self._gpu_ids = gpu_ids
+        self._gpu_ids = [1]
         self._use_data_parallel = use_data_parallel
     
     @property

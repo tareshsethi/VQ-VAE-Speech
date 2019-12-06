@@ -1,0 +1,17 @@
+{
+    "experiments_path": "../overfit_experiment",
+    "results_path": "../overfit_result",
+    "configuration_path": "../configurations/ibm_features.yaml",
+    "seed": 1234,
+    "experiments": {    
+        "baseline": {
+            "num_epochs": 1000, "batch_size": 1,
+            "num_embeddings": 44,
+            "use_device": "cuda:0",
+            "normalize": true,
+            "use_jitter": true,
+            "jitter_probability": 0.1, 
+            "use_speaker_conditioning": false
+        }
+    }
+}

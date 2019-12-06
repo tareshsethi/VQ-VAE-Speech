@@ -18,6 +18,7 @@ class IBMSpeechStream(object):
         self._training_data = IBMDataset(ibm.audios_train, ibm.speaker_dic, ibm.utterences, configuration)
         self._validation_data = IBMDataset(ibm.audios_val, ibm.speaker_dic, ibm.utterences, configuration)
         factor = 1 if len(gpu_ids) == 0 else len(gpu_ids)
+        print(configuration['batch_size'])
         self._training_loader = DataLoader(
             self._training_data,
             batch_size=configuration['batch_size'],

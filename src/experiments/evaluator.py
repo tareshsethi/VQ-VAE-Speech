@@ -24,6 +24,7 @@
  #   SOFTWARE.                                                                       #
  #####################################################################################
 
+import torch
 from dataset.spectrogram_parser import SpectrogramParser
 # from dataset.vctk import VCTK
 from dataset.ibm import IBM
@@ -56,6 +57,7 @@ class Evaluator(object):
         self._ibm = IBM(self._configuration['data_root'], ratio=self._configuration['train_val_split'])
         self._results_path = results_path
         self._experiment_name = experiment_name
+        self._num_embeddings = configuration['num_embeddings']
 
     def evaluate(self, evaluation_options):
         self._model.eval()
@@ -122,7 +124,55 @@ class Evaluator(object):
         if evaluation_options['compute_groundtruth_average_phonemes_number']:
             alignment_stats.compute_groundtruth_average_phonemes_number()
 
-    def _evaluate_once(self, eval_folder, configuration):
+    def _evaluate_once(self):
+        self._model.eval()
+
+        data = next(iter(self._data_stream.validation_loader))
+
+        preprocessed_audio = data['preprocessed_audio'].to(self._device)
+        valid_originals = data['input_features'].to(self._device)
+        speaker_ids = data['speaker_id'].to(self._device)
+        target = data['output_features'].to(self._device)
+        wav_filename = data['wav_filename']
+        shifting_time = data['shifting_time'].to(self._device)
+        preprocessed_length = data['preprocessed_length'].to(self._device)
+
+        valid_originals = valid_originals.permute(0, 2, 1).contiguous().float()
+        batch_size = valid_originals.size(0)
+        target = target.permute(0, 2, 1).contiguous().float()
+        wav_filename = wav_filename[0][0]
+
+        z = self._model.encoder(valid_originals)
+        z = self._model.pre_vq_conv(z)
+        _, quantized, _, encodings, distances, encoding_indices, _, \
+            encoding_distances, embedding_distances, frames_vs_embedding_distances, \
+            concatenated_quantized = self._model.vq(z)
+        valid_reconstructions = self._model.decoder(quantized, self._data_stream.speaker_dic, speaker_ids)[0]
+
+        return {
+            'preprocessed_audio': preprocessed_audio,
+            'valid_originals': valid_originals,
+            'speaker_ids': speaker_ids,
+            'target': target,
+            'wav_filename': wav_filename,
+            'shifting_time': shifting_time,
+            'preprocessed_length': preprocessed_length,
+            'batch_size': batch_size,
+            'quantized': quantized,
+            'encodings': encodings,
+            'distances': distances,
+            'encoding_indices': encoding_indices,
+            'encoding_distances': encoding_distances,
+            'embedding_distances': embedding_distances,
+            'frames_vs_embedding_distances': frames_vs_embedding_distances,
+            'concatenated_quantized': concatenated_quantized,
+            'valid_reconstructions': valid_reconstructions
+        }
+
+    def _get_embeddings(self):
+        return self._model.vq._embedding(torch.LongTensor(list(range(self._num_embeddings))).to(self._device)).to(self._device).detach().cpu().numpy()
+
+    def _evaluate_once_dict(self, eval_folder, configuration):
         self._model.eval()
 
         normalizer = None
@@ -191,7 +241,7 @@ class Evaluator(object):
                     'embedding_distances': embedding_distances,
                     'frames_vs_embedding_distances': frames_vs_embedding_distances,
                     'concatenated_quantized': concatenated_quantized,
-                    'valid_reconstructions': valid_reconstructions
+                    'valid_reconstructions': valid_reconstructions, 
                 }
 # 
             except (OSError, StopIteration):

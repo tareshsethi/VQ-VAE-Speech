@@ -10,7 +10,7 @@ start_epoch: 0
 num_epochs: 500
 save_path: './speech_output'
 num_workers: 1
-train_val_split: 0.8
+train_val_split: 1
 learning_rate: 0.0002
 normalize: False
 normalizer_path: '../data/ibm/ibm-mfcc-stats.pickle'

@@ -75,19 +75,20 @@ class ConvolutionalTrainer(BaseTrainer):
 
         perplexity_value = perplexity.item()
         train_bar.set_description('Epoch {}: loss {:.4f} perplexity {:.3f}'.format(
-            epoch + 1, losses['loss'], perplexity_value))
+            epoch + 1, losses['loss'], perplexity_value))   
 
         return losses, perplexity_value
 
     def save(self, epoch, **kwargs):
-        torch.save({
-            'experiment_name': self._experiment_name,
-            'epoch': epoch + 1,
-            'model': self._model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-            'train_res_recon_error': kwargs.get('train_res_recon_error', -1),
-            'train_res_perplexity': kwargs.get('train_res_perplexity', -1)},
-            os.path.join(self._experiments_path, '{}_{}_checkpoint.pth'.format(
-                self._experiment_name, epoch + 1))
-        )
+        if epoch % 10 == 0:
+            torch.save({
+                'experiment_name': self._experiment_name,
+                'epoch': epoch + 1,
+                'model': self._model.state_dict(),
+                'optimizer': self._optimizer.state_dict(),
+                'train_res_recon_error': kwargs.get('train_res_recon_error', -1),
+                'train_res_perplexity': kwargs.get('train_res_perplexity', -1)},
+                os.path.join(self._experiments_path, '{}_{}_checkpoint.pth'.format(
+                    self._experiment_name, epoch + 1))
+            )
 
