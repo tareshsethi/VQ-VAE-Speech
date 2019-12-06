@@ -29,6 +29,8 @@ from error_handling.console_logger import ConsoleLogger
 from evaluation.alignment_stats import AlignmentStats
 from evaluation.embedding_space_stats import EmbeddingSpaceStats
 from evaluation.gradient_stats import GradientStats
+from astropy.convolution.kernels import Gaussian2DKernel
+from astropy.convolution import convolve
 
 import json
 import yaml
@@ -38,6 +40,8 @@ import random
 import pickle
 import os
 import librosa
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 
 class Experiments(object):
@@ -66,15 +70,48 @@ class Experiments(object):
                 pickle.dump(embedding_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
             torch.cuda.empty_cache()
 
-    def evaluate_once(self, evaluation_options, eval_folder, configuration):
+    def evaluate_once(self, evaluation_options, eval_folder, configuration, heatmap):
         for experiment in self._experiments:
             Experiments.set_deterministic_on(experiment.seed)
             evaluate_dict = experiment.evaluate_once(eval_folder, configuration)
+            print(evaluate_dict.keys())
+            # print("concatenate quantized {}".format(evaluate_dict['OAF_youth_happy.wav']['concatenated_quantized'].shape))
+            # print("quantized {}".format(evaluate_dict['OAF_youth_happy.wav']['quantized'].shape))
+            # print("encoding_indices {}".format(evaluate_dict['OAF_youth_happy.wav']['encoding_indices'].shape))
+            # print("encodings {}".format(evaluate_dict['OAF_youth_happy.wav']['encodings'].shape))
+            # print("distances {}".format(evaluate_dict['OAF_youth_happy.wav']['distances'].shape))
             path = '../data/ibm/features/{}'.format(eval_folder)
             with open('{0}/{1}.txt'.format(path, eval_folder), 'w') as f:
                 f.write(str(evaluate_dict))
-            with open('{0}/{1}.pickle'.format(path, eval_folder), 'wb') as handle:
-                pickle.dump(evaluate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            if heatmap:
+                keys = list(evaluate_dict.keys())
+                first_plot = evaluate_dict[keys[0]]['quantized']
+                second_plot = evaluate_dict[keys[1]]['quantized']
+                
+
+                gs = gridspec.GridSpec(1, 3)
+                # gs.update(wspace=0.000005, hspace=0.00001)
+                fig = plt.figure(figsize=(15,10))
+                ax = fig.add_subplot(gs[0, 0]) # row 0, col 0
+                first_plot = convolve(np.squeeze(first_plot.cpu().detach().numpy()), Gaussian2DKernel(stddev=1))
+                ax.imshow(np.squeeze(first_plot), cmap=plt.cm.RdBu, interpolation='nearest')
+
+                ax = fig.add_subplot(gs[0, 1]) # row 0, col 0
+                second_plot = convolve(np.squeeze(second_plot.cpu().detach().numpy()), Gaussian2DKernel(stddev=1))
+                ax.imshow(np.squeeze(second_plot), cmap=plt.cm.RdBu, interpolation='nearest')
+
+                ax = fig.add_subplot(gs[0, 2])
+                # convolved_map = convolve(np.squeeze(hm.cpu().detach().numpy()), Gaussian2DKernel(stddev=1))
+                convolved_map = first_plot - second_plot
+                im = ax.imshow(convolved_map, cmap=plt.cm.RdBu, interpolation='nearest')
+            
+                fig.subplots_adjust(right=0.8)
+                cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+                fig.colorbar(im, cax=cbar_ax)
+                # plt.subplots_adjust(wspace=0, hspace=0)
+                fig.savefig('{}/heatmap.png'.format(path), bbox_inches='tight')
+                with open('{0}/heatmap.pickle'.format(path, eval_folder), 'wb') as handle:
+                    pickle.dump(convolved_map, handle, protocol=pickle.HIGHEST_PROTOCOL)
             torch.cuda.empty_cache()
 
     def evaluate(self, evaluation_options):

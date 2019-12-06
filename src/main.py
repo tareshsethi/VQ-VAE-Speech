@@ -89,6 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('--plot_gradient_stats', action='store_true', help='Plot the gradient stats of the training')
     parser.add_argument('--generate_sample', action='store_true', help='Generate one sample from checkpoint')
     parser.add_argument('--sample_folder', nargs='?', type=str, help='The folder containing the evaluation sample')
+    parser.add_argument('--heatmap', action='store_true')
     parser.add_argument('--save_embeddings', action='store_true', help='Store the prototype embeddings')
     args = parser.parse_args()
     
@@ -166,7 +167,7 @@ if __name__ == "__main__":
         configuration = load_configuration(default_configuration_path)
         configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
         eval_folder = args.sample_folder
-        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options, eval_folder, configuration)
+        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options, eval_folder, configuration, args.heatmap)
         sys.exit(0)
 
     if args.save_embeddings:
