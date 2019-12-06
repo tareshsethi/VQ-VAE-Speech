@@ -61,7 +61,10 @@ if __name__ == "__main__":
     default_experiments_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'experiments_vq44-mfcc39.json'
     default_experiments_path = '..' + os.sep + 'experiments'
     # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'vctk_features.yaml'
-    default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_features.yaml'
+    # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_features.yaml'
+    default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_wavenet.yaml'
+    # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_wavenet_pretrained.yaml'
+
     # default_dataset_path = '..' + os.sep + 'data' + os.sep + 'vctk'
     default_dataset_path = '..' + os.sep + 'data' + os.sep + 'ibm'
     default_results_path = '..' + os.sep + 'results'

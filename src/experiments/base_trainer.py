@@ -64,8 +64,8 @@ class BaseTrainer(object):
                     train_res_perplexity.append(perplexity_value)
                     iteration += 1
 
-                if epoch % 100 == 0:
-                    self.save(epoch, **{'train_res_recon_error': train_res_recon_error, 'train_res_perplexity': train_res_perplexity})
+                # if epoch % 100 == 0:
+                self.save(epoch, **{'train_res_recon_error': train_res_recon_error, 'train_res_perplexity': train_res_perplexity})
 
     def _record_codebook_stats(self, iteration, iterations, vq,
         concatenated_quantized, encoding_indices, speaker_id, epoch):

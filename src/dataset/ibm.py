@@ -17,6 +17,8 @@ def is_audio_file(filename):
 def make_manifest(dir):
     audios = []
     dir = os.path.expanduser(dir)
+    # print (dir)
+    dir = '/home/derekhuang/VQ-VAE-Speech/data/ibm/raw/IBM-Corpus'
     for target in sorted(os.listdir(dir)):
         d = os.path.join(dir, target)
         if not os.path.isdir(d):
@@ -35,6 +37,7 @@ def load_txts(dir):
     utterences = dict()
     txts = []
     dir = os.path.expanduser(dir)
+    dir = '/home/derekhuang/VQ-VAE-Speech/data/ibm/raw/IBM-Corpus'
     for target in sorted(os.listdir(dir)):
         d = os.path.join(dir, target)
         if not os.path.isdir(d):
