@@ -100,6 +100,8 @@ class WaveNetVQVAE(nn.Module):
         return self._decoder
 
     def forward(self, x_enc, x_dec, global_condition):
+        x_enc = x_enc.permute(0, 2, 1).contiguous().float()
+
         z = self._encoder(x_enc)
 
         z = self._pre_vq_conv(z)
@@ -109,7 +111,7 @@ class WaveNetVQVAE(nn.Module):
 
         local_condition = quantized
         local_condition = local_condition.squeeze(-1)
-        x_dec = x_dec.squeeze(-1)
+        x_dec = x_dec.squeeze(-1).squeeze(1)        
 
         reconstructed_x = self._decoder(x_dec, local_condition, global_condition)
         reconstructed_x = reconstructed_x.unsqueeze(-1)

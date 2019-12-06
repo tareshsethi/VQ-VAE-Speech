@@ -53,7 +53,7 @@ class WaveNetDecoder(nn.Module):
         """
         self._conv_1 = Conv1DBuilder.build(
             in_channels=64,
-            out_channels=768,
+            out_channels=configuration['local_condition_dim'],
             kernel_size=2,
             use_kaiming_normal=configuration['use_kaiming_normal']
         )
@@ -71,18 +71,30 @@ class WaveNetDecoder(nn.Module):
             gin_channels=configuration['global_condition_dim'],
             n_speakers=len(speaker_dic),
             upsample_conditional_features=True,
-            upsample_scales=[2, 2, 2, 2, 2, 12] # 768
-            #upsample_scales=[2, 2, 2, 2, 12]
+            upsample_scales=[2, 2, 2, 2, 2, 10] # 768
+            # upsample_scales=[2, 2, 2, 2, 12]
         )
 
         self._device = device
 
-    def forward(self, y, local_condition, global_condition):
+    def forward(self, y, local_condition, global_condition, softmax=False):
+        
         if self._use_jitter and self.training:
             local_condition = self._jitter(local_condition)
 
         local_condition = self._conv_1(local_condition)
 
-        x = self._wavenet(y, local_condition, global_condition)
+        x = self._wavenet(y, local_condition, global_condition, softmax=softmax)
+
+        return x
+
+    def incremental_forward(self, y, local_condition, global_condition, softmax=False):
+        if self._use_jitter and self.training:
+            local_condition = self._jitter(local_condition)
+
+        local_condition = self._conv_1(local_condition)
+
+        # TODO hardcoded
+        x = self._wavenet.incremental_forward(initial_input=y, c=local_condition, g=global_condition, T=8000, softmax=softmax)
 
         return x

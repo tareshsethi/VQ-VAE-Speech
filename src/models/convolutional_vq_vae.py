@@ -122,7 +122,7 @@ class ConvolutionalVQVAE(nn.Module):
     def decoder(self):
         return self._decoder
 
-    def forward(self, x, speaker_dic, speaker_id):
+    def forward(self, x, speaker_dic, speaker_id, softmax=False):
         x = x.permute(0, 2, 1).contiguous().float()
 
         z = self._encoder(x)
@@ -148,5 +148,5 @@ class ConvolutionalVQVAE(nn.Module):
 
         reconstructed_x = reconstructed_x.view(-1, self._output_filters, output_features_size)
         reconstructed_x = reconstructed_x[:, :, :-(output_features_size-input_features_size)]
-        
+
         return reconstructed_x, vq_loss, losses, perplexity, encoding_indices, concatenated_quantized
