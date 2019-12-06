@@ -1,12 +1,13 @@
 {
-    "experiments_path": "../experiments_with_vctk",
-    "results_path": "../results_with_vctk",
-    "configuration_path": "../configurations/ibm_features.yaml",
+    "experiments_path": "../experiments",
+    "results_path": "../results",
+    "configuration_path": "../configurations/ibm_wavenet_pretrained.yaml",
     "seed": 1234,
     "experiments": {    
         "baseline": {
-            "num_epochs": 1000, "batch_size": 4,
-            "num_embeddings": 44,
+            "num_epochs": 1000, 
+            "batch_size": 4,
+            "num_embeddings": 50,
             "use_device": "cuda:0",
             "normalize": true,
             "use_jitter": true,
