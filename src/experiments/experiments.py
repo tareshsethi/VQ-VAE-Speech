@@ -66,8 +66,13 @@ class Experiments(object):
             path = '../data/ibm/features/'
             with open('{0}/embedding.txt'.format(path), 'w') as f:
                 f.write(str(embedding_list))
-            with open('{0}/embedding.pickle'.format(path), 'wb') as handle:
-                pickle.dump(embedding_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            # with open('{0}/embedding.pickle'.format(path), 'wb') as handle:
+            #     pickle.dump(embedding_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            plt.figure(figsize=(15,10))
+            plot = convolve(np.squeeze(embedding_list), Gaussian2DKernel(stddev=1))
+            # plot = np.squeeze(embedding_list)
+            plt.imshow(np.squeeze(plot.T), cmap=plt.cm.RdBu, interpolation='nearest')
+            plt.savefig('{}/heatmap.png'.format(path), bbox_inches='tight')
             torch.cuda.empty_cache()
 
     def evaluate_once(self, evaluation_options, eval_folder, configuration, heatmap):
