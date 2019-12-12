@@ -35,8 +35,8 @@ class IBMDataset(Dataset):
                 start_trimming = None
             else:
                 # trimming
-                start_trimming = 0
-                # start_trimming = len(audio) - self._length - 1
+                # start_trimming = 0
+                start_trimming = len(audio) - self._length - 1
                 # random.randint(0, len(audio) - self._length - 1)
                 audio = audio[start_trimming:start_trimming + self._length]
                 quantized = quantized[start_trimming:start_trimming + self._length]
