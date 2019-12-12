@@ -61,8 +61,8 @@ if __name__ == "__main__":
     default_experiments_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'experiments_vq44-mfcc39.json'
     default_experiments_path = '..' + os.sep + 'experiments'
     # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'vctk_features.yaml'
-    # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_features.yaml'
-    default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_wavenet.yaml'
+    default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_features.yaml'
+    # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_wavenet.yaml'
     # default_configuration_path = '..' + os.sep + 'configurations' + os.sep + 'ibm_wavenet_pretrained.yaml'
 
     # default_dataset_path = '..' + os.sep + 'data' + os.sep + 'vctk'
@@ -93,6 +93,7 @@ if __name__ == "__main__":
     parser.add_argument('--generate_sample', action='store_true', help='Generate one sample from checkpoint')
     parser.add_argument('--sample_folder', nargs='?', type=str, help='The folder containing the evaluation sample')
     parser.add_argument('--heatmap', action='store_true')
+    parser.add_argument('--produce_metrics', action='store_true')
     parser.add_argument('--save_embeddings', action='store_true', help='Store the prototype embeddings')
     args = parser.parse_args()
     
@@ -170,7 +171,7 @@ if __name__ == "__main__":
         configuration = load_configuration(default_configuration_path)
         configuration = update_configuration_from_experiments(args.experiments_configuration_path, configuration)
         eval_folder = args.sample_folder
-        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options, eval_folder, configuration, args.heatmap)
+        evaluation_dict = Experiments.load(args.experiments_configuration_path).evaluate_once(evaluation_options, eval_folder, configuration, args.heatmap, args.produce_metrics)
         sys.exit(0)
 
     if args.save_embeddings:

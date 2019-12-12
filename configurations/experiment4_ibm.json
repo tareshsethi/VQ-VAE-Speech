@@ -1,6 +1,6 @@
 {
-    "experiments_path": "../experiments",
-    "results_path": "../results",
+    "experiments_path": "../exp_new",
+    "results_path": "../results_new",
     "configuration_path": "../configurations/ibm_features.yaml",
     "seed": 1234,
     "experiments": {    

@@ -194,12 +194,12 @@ class Evaluator(object):
         while True:
             try:
                 data = next(validation_dataset)
-                one_hot = data['one_hot'].to(self._device)
-                shape = list(one_hot.shape)
-                new_shape = tuple(shape[:3] + [8000] + [shape[4]])
-                one_hot_padded = torch.zeros(new_shape)
-                one_hot_padded[:,:,:,:self._configuration['length'],:] = one_hot
-                one_hot_padded = one_hot_padded.to(self._device)
+                # one_hot = data['one_hot'].to(self._device)
+                # shape = list(one_hot.shape)
+                # new_shape = tuple(shape[:3] + [8000] + [shape[4]])
+                # one_hot_padded = torch.zeros(new_shape)
+                # one_hot_padded[:,:,:,:self._configuration['length'],:] = one_hot
+                # one_hot_padded = one_hot_padded.to(self._device)
                 preprocessed_audio = data['preprocessed_audio'].to(self._device)
                 valid_originals = data['input_features'].to(self._device)
                 speaker_ids = data['speaker_id'].to(self._device)

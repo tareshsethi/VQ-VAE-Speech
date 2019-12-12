@@ -18,6 +18,10 @@ class IBMFeaturesDataset(Dataset):
         dic = None
         path = self._sub_features_path + os.sep + str(index) + '.pickle'
 
+        if index == 9:
+            path = self._sub_features_path + os.sep + str(8) + '.pickle'
+
+
         if not os.path.isfile(path):
             raise OSError("No such file '{}'".format(path))
 

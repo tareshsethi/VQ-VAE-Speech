@@ -13,7 +13,7 @@ train_val_split: 1
 learning_rate: 0.00002
 normalize: False
 normalizer_path: '../data/ibm/ibm-mfcc-stats.pickle'
-use_speaker_conditioning: False
+use_speaker_conditioning: True
 record_codebook_stats: False
 record_gradient_stats: False
 features_path: 'features'

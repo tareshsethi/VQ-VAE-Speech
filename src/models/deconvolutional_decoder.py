@@ -120,11 +120,20 @@ class DeconvolutionalDecoder(nn.Module):
         if self._use_speaker_conditioning:
             speaker_embedding = GlobalConditioning.compute(speaker_dic, speaker_id, x,
                 device=self._device, gin_channels=40, expand=True)
+            # print (speaker_embedding.shape)
+
             x = torch.cat([x, speaker_embedding], dim=1).to(self._device)
+
+            # print (x.shape)
 
         x = self._conv_1(x)
         if self._verbose:
             ConsoleLogger.status('[FEATURES_DEC] _conv_1 output size: {}'.format(x.size()))
+
+        # print (x.shape)
+        # print (speaker_dic)
+        # import sys
+        # sys.exit(0)
 
         if self._output_type == 'audio':
             x = self._upsample_1(x)
@@ -136,6 +145,9 @@ class DeconvolutionalDecoder(nn.Module):
                 ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))
 
         else:
+            # print (x.shape)
+            # import sys
+            # sys.exit(0)
             x = self._upsample(x)
             if self._verbose:
                 ConsoleLogger.status('[FEATURES_DEC] _upsample output size: {}'.format(x.size()))

@@ -80,7 +80,7 @@ class IBMFeaturesStream(object):
 
     def _make_speaker_dic(self, root):
         speakers = [
-            str(speaker.name) for speaker in pathlib.Path(root).glob('wav48/*/')]
+            str(speaker.name) for speaker in pathlib.Path(root).glob('wav/*/')]
         speakers = sorted([speaker for speaker in speakers])
         speaker_dic = {speaker: i for i, speaker in enumerate(speakers)}
         return speaker_dic

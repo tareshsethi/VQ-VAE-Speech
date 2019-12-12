@@ -1,0 +1,17 @@
+{
+    "experiments_path": "../experiment_speaker",
+    "results_path": "../results_speaker",
+    "configuration_path": "../configurations/ibm_features.yaml",
+    "seed": 1234,
+    "experiments": {    
+        "baseline": {
+            "num_epochs": 1000, 
+            "batch_size": 64,
+            "num_embeddings": 50,
+            "use_device": "cuda:2",
+            "normalize": true,
+            "use_jitter": false,
+            "use_speaker_conditioning": true 
+        }
+    }
+}
