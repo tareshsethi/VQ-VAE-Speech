@@ -1,5 +1,5 @@
 results/
-data/
+data/*
 __pycache__/
 log/
 loss/
